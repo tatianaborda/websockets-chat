@@ -40,22 +40,29 @@ public class ChatClient {
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Ingresa el nombre de la sala: ");
-        String room = scanner.nextLine();
+        String room = scanner.nextLine().trim();
 
-        // Asegúrate de que la URL sea correcta
-        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        ChatClient client = new ChatClient();
-        container.connectToServer(client, new URI("ws://localhost:7070/websocket/chat"));
-
-        System.out.println("Escribe tus mensajes (escribe 'salir' para terminar):");
-        while (true) {
-            String message = scanner.nextLine();
-            if ("salir".equalsIgnoreCase(message)) {
-                break;
-            }
-            client.sendMessage(message);
+        if (room.isEmpty()) {
+            System.out.println("El nombre de la sala no puede estar vacío.");
+            return;
         }
 
-        scanner.close();
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        ChatClient client = new ChatClient();
+        try {
+            container.connectToServer(client, new URI("ws://localhost:7070/chat/" + room));
+            System.out.println("Escribe tus mensajes (escribe 'salir' para terminar):");
+            while (true) {
+                String message = scanner.nextLine();
+                if ("salir".equalsIgnoreCase(message)) {
+                    break;
+                }
+                client.sendMessage(message);
+            }
+        } catch (Exception e) {
+            System.err.println("Error conectando al servidor: " + e.getMessage());
+        } finally {
+            scanner.close();
+        }
     }
 }
